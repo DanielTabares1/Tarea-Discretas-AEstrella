@@ -1,5 +1,6 @@
 package controller;
 
+import javafx.scene.control.Label;
 import model.Nodo;
 import model.Paso;
 
@@ -7,11 +8,9 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Stack;
 
 public class Controller {
+    public Label label_vista;
 
     private double[][] matrizAdyacencia = new double[28][28];
     private String[][] matrizCoordenadas = new String[4][28];
@@ -67,11 +66,13 @@ public class Controller {
         }
     }
 
+    //algoritmo que detecta la accion del botón y ejecuta el algoritmo
     public void btn_ejecutar_algoritmo_action() {
+        //lee y carga las matrices desde los archivos de texto
         llenarMatriz();
         llenarCoordenadas();
+        //ejecuta el algoritmo que da la solucion
         resolver();
-        System.out.print("W");
     }
 
     public void resolver() {
@@ -90,8 +91,8 @@ public class Controller {
         Nodo posicionActual = nodos[0];              // se agrega el nodo A como primer elemento
         cerrado.add(new Paso(posicionActual, null, 0));
 
+        //un ciclo se repite hasta llegar al destino "W"
         while (!posicionActual.getNombre().equals(nodos[22].getNombre())) {
-            System.out.println("analizando con "+posicionActual.getNombre());
             int x = 0;      //determino el indice del vertice que estoy analizando
             for (int i = 0; i < 28; i++) {
                 if (matrizCoordenadas[1][i].equals(posicionActual.getNombre())) {
@@ -105,43 +106,50 @@ public class Controller {
                 if (matrizAdyacencia[x][i] != 0) {
                     boolean tomado = false;
                     int auxN=0;
+                    // vericamos  si ya se ha pasado antes por el nodo
                     for (int j = 0; j < cerrado.stream().count(); j++) {
                         if (cerrado.get(j).getDestino().getNombre().equals(matrizCoordenadas[1][i])) {
                             tomado = true;
-                            System.out.println("ya se había tomado"+cerrado.get(j).getDestino().getNombre());
                             auxN=i;
                         }
                     }
-                    // vericamos que no se haya pasado ya por el nodo y se agregan
+                    //si no se ha pasado antes
                     if(!tomado){
+                        //se crea un nuevo nodo con los datos del destino
                         Nodo d = new Nodo(matrizCoordenadas[1][i], Integer.parseInt(matrizCoordenadas[2][i]), Integer.parseInt(matrizCoordenadas[3][i]));
+                        //se recorre la lista de los posibles vecinos con un ciclo
                         for (int j = 0; j < abierto.stream().count() ; j++) {
+                            //si el nodo estino ya estaba entre los posibles vecinos
                             if(abierto.get(j).getDestino().getNombre().equals(matrizCoordenadas[1][i])){
                                 tomado=true;
-                                System.out.println("ya existía "+abierto.get(j).getDestino().getNombre()+"con "+abierto.get(j).getPeso());
+                                //se comprueba si hay un mejor camino para llegar a nuestra ubicacion actual y en dicho caso se cambia
                                 if(abierto.get(j).getPeso()-heuristica(i)+matrizAdyacencia[x][i]<pesoAcumulado){
-                                    //todo verificar caso, cómo arreglar
-                                    System.out.println("en teoría me debería devolver hasta la d");
-                                }
-                                else if(abierto.get(j).getPeso()>(matrizAdyacencia[x][i]+pesoAcumulado+d.heuristica())){
-                                    System.out.println("en el juego de la vidaaaaaaaa");
-                                    abierto.remove(abierto.get(j));
-                                    abierto.add(new Paso(d, posicionActual, matrizAdyacencia[x][i]+pesoAcumulado+d.heuristica()));
-                                    System.out.print(d.getNombre()+"("+(matrizAdyacencia[x][i]+pesoAcumulado+d.heuristica())+")  ");
+                                    Paso eliminar = cerrado.get((int)cerrado.stream().count()-1);
+                                    while (!eliminar.getPadre().getNombre().equals(abierto.get(j).getPadre().getNombre())){
+                                        eliminar = cerrado.remove((int)cerrado.stream().count()-1);
+                                    }
+                                    eliminar=abierto.remove(j);
+                                    eliminar.setPeso(eliminar.getPeso()-eliminar.getDestino().heuristica());
+                                    cerrado.add(eliminar);
+                                    pesoAcumulado = eliminar.getPeso();
+                                    Paso agregar = new Paso(nodos[x], eliminar.getDestino(), pesoAcumulado+matrizAdyacencia[x][i]);
+                                    cerrado.add(agregar);
+                                    pesoAcumulado+=matrizAdyacencia[x][i];
                                     break;
                                 }
-                                else {
+                                // se verifica si el nuevo camino es más corto que el anterior y se actualiza
+                                else if(abierto.get(j).getPeso()>(matrizAdyacencia[x][i]+pesoAcumulado+d.heuristica())){
+                                    abierto.remove(abierto.get(j));
+                                    abierto.add(new Paso(d, posicionActual, matrizAdyacencia[x][i]+pesoAcumulado+d.heuristica()));
                                     break;
                                 }
                             }
                         }
+                        //si el destino no había sido revisado antes, se agrega a la lista de abiertos
                         if(!tomado){
-                            System.out.print("  nt");
                             abierto.add(new Paso(d, posicionActual, matrizAdyacencia[x][i]+pesoAcumulado+d.heuristica()));
-                            System.out.print(d.getNombre()+"("+(matrizAdyacencia[x][i]+pesoAcumulado+d.heuristica())+")  ");
                         }
                     }
-
                 }
             }
 
@@ -153,14 +161,21 @@ public class Controller {
                 }
             }
 
-            //cambio de lista al vecino
+            //cambio de lista al vecino encontrado
             Paso aux = abierto.remove(mejorVecino);
             aux.setPeso(aux.getPeso()-aux.getDestino().heuristica());
             cerrado.add(aux);
             pesoAcumulado=aux.getPeso();
             posicionActual=aux.getDestino();
-            System.out.println(pesoAcumulado);
         }
+
+        //Se revisa la lista cerrado que contiene los pasos definitivos
+        String resultado = "";
+        for (Paso p: cerrado) {
+            resultado+=p.getDestino().getNombre()+"   ";
+        }
+        //se muestra el resultado en pantalla
+        label_vista.setText("El mejor camino es\n"+resultado);
     }
 
 
@@ -179,6 +194,5 @@ public class Controller {
         }
         return x;
     }
-
 
 }
