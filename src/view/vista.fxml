@@ -18,7 +18,7 @@
             <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
                <children>
                   <Button mnemonicParsing="false" onAction="#btn_ejecutar_algoritmo_action" text="Ejecutar algoritmo" />
-                  <Label text="Label">
+                  <Label fx:id="label_vista" text="Label">
                      <font>
                         <Font size="22.0" />
                      </font>
