@@ -1,20 +1,22 @@
 package controller;
-
 import javafx.scene.control.Label;
 import model.Nodo;
 import model.Paso;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 
 public class Controller {
-    public Label label_vista;
+    public Label label_vista; // coneccion entre el algoritmo y el texto que se va a mostrar en pantalla
 
-    private double[][] matrizAdyacencia = new double[28][28];
-    private String[][] matrizCoordenadas = new String[4][28];
+    private double[][] matrizAdyacencia = new double[28][28];  //matriz de adyacencia
+    private String[][] matrizCoordenadas = new String[4][28];  //matriz de coordenadas
 
+
+    /*
+    método que lee el archivo matriz.txt e ingresa sus datos en la matriz de adyacencia
+     */
     public void llenarMatriz() {
         //se abre un flujo de datos entre el aplicativo y el archivo "matriz"
         FileReader reader;
@@ -40,6 +42,10 @@ public class Controller {
         }
     }
 
+
+    /*
+    método que lee el archivo coordenadas.txt e ingresa sus datos en la matriz de coordenadas
+     */
     public void llenarCoordenadas() {
         //se abre un flujo de datos entre el aplicativo y el archivo "coordenadas
         FileReader reader;
@@ -66,7 +72,10 @@ public class Controller {
         }
     }
 
-    //algoritmo que detecta la accion del botón y ejecuta el algoritmo
+
+    /*
+    método que detecta la accion del click en el botón de la interfaz gráfica
+     */
     public void btn_ejecutar_algoritmo_action() {
         //lee y carga las matrices desde los archivos de texto
         llenarMatriz();
@@ -75,21 +84,27 @@ public class Controller {
         resolver();
     }
 
+
+    /*
+    método que toma todos los datos cargados y ejecuta la solución
+     */
     public void resolver() {
+        //se crea un arreglo de Nodos en el cual se guardarán todos los posibles nodos a visitar
+        //con sus datos correspondientes (nombre y coordenadas)
         Nodo[] nodos = new Nodo[28];
+        //este ciclo llena el anterior arreglo
         for (int i = 0; i < 28; i++) {
             String nombre = matrizCoordenadas[1][i];
             int x = Integer.parseInt(matrizCoordenadas[2][i]);
             int y = Integer.parseInt(matrizCoordenadas[3][i]);
             nodos[i] = new Nodo(nombre, x, y);
-        } // se crean todos los nodos
+        }
 
-        ArrayList<Paso> cerrado = new ArrayList<>(); // se crea una lista para los nodos por los que paso
+        ArrayList<Paso> cerrado = new ArrayList<>(); // se crea una lista para los nodos por los que se ha pasado
         ArrayList<Paso> abierto = new ArrayList<>(); // se crea una lista para los nodos vecinos
-        double pesoAcumulado=0;
-
-        Nodo posicionActual = nodos[0];              // se agrega el nodo A como primer elemento
-        cerrado.add(new Paso(posicionActual, null, 0));
+        double pesoAcumulado=0;                      //se establece el peso acumulado inicial como 0
+        Nodo posicionActual = nodos[0];              // se crea el nodo A como primer elemento y posicion actual
+        cerrado.add(new Paso(posicionActual, null, 0)); // se agreaga el mmismo nodo a la lista cerrado
 
         //un ciclo se repite hasta llegar al destino "W"
         while (!posicionActual.getNombre().equals(nodos[22].getNombre())) {
@@ -103,8 +118,10 @@ public class Controller {
 
             //se agregan los vecinos
             for (int i = 0; i < 28; i++) {
+                //este condicional determina si los nodos analizados tienen una arista en común
+                //determinando si su cruce en la matriz de adyacencia es diferente de cero
                 if (matrizAdyacencia[x][i] != 0) {
-                    boolean tomado = false;
+                    boolean tomado = false;   //se crea la variable tomado para controlar el no repetir nodos
                     int auxN=0;
                     // vericamos  si ya se ha pasado antes por el nodo
                     for (int j = 0; j < cerrado.stream().count(); j++) {
@@ -125,6 +142,7 @@ public class Controller {
                                 //se comprueba si hay un mejor camino para llegar a nuestra ubicacion actual y en dicho caso se cambia
                                 if(abierto.get(j).getPeso()-heuristica(i)+matrizAdyacencia[x][i]<pesoAcumulado){
                                     Paso eliminar = cerrado.get((int)cerrado.stream().count()-1);
+                                    //este ciclo elimina los pasos dados hasta la salida que encontramos y era mejor
                                     while (!eliminar.getPadre().getNombre().equals(abierto.get(j).getPadre().getNombre())){
                                         eliminar = cerrado.remove((int)cerrado.stream().count()-1);
                                     }
@@ -161,7 +179,7 @@ public class Controller {
                 }
             }
 
-            //cambio de lista al vecino encontrado
+            //cambio de lista al vecino encontrado, se elimina de los vecinos y se agrega a los pasos dados
             Paso aux = abierto.remove(mejorVecino);
             aux.setPeso(aux.getPeso()-aux.getDestino().heuristica());
             cerrado.add(aux);
@@ -179,12 +197,22 @@ public class Controller {
     }
 
 
+    /*
+    método que calcula la eurística al pasarle un dato entero
+    correspondiente al índice del nodo en la tabla de coordenadas
+    (A:0, B:1, C:2, D:3, E:4, F:5, ...)
+     */
     private double heuristica(int i) {
         int x = Integer.parseInt(matrizCoordenadas[2][i]);
         int y = Integer.parseInt(matrizCoordenadas[3][i]);
         return Math.sqrt(Math.pow(Math.abs(x - 335), 2) + Math.pow(Math.abs(y - 30), 2));
     }
 
+    /*
+    método encargado de obtener el indice correspondiente al nodo
+    cuyo nombre es el parámetro de dicho método
+    (A:0, B:1, C:2, D:3, E:4, F:5, ...)
+     */
     private int indiceLetra(String letra) {
         int x = 0;
         for (int i = 0; i < 28; i++) {

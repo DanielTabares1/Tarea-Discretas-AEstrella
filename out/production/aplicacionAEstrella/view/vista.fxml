@@ -6,11 +6,11 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<AnchorPane prefHeight="500.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.Controller">
+<AnchorPane prefHeight="600.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.Controller">
    <children>
       <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="15.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
          <children>
-            <ImageView fitHeight="343.0" fitWidth="663.0" pickOnBounds="true" preserveRatio="true">
+            <ImageView fitHeight="414.0" fitWidth="809.0" pickOnBounds="true" preserveRatio="true">
                <image>
                   <Image url="@../resources/grafo.PNG" />
                </image>
@@ -18,7 +18,7 @@
             <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
                <children>
                   <Button mnemonicParsing="false" onAction="#btn_ejecutar_algoritmo_action" text="Ejecutar algoritmo" />
-                  <Label fx:id="label_vista" text="Label">
+                  <Label fx:id="label_vista">
                      <font>
                         <Font size="22.0" />
                      </font>
