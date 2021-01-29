@@ -1,7 +1,9 @@
 package controller;
+
 import javafx.scene.control.Label;
 import model.Nodo;
 import model.Paso;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -102,7 +104,7 @@ public class Controller {
 
         ArrayList<Paso> cerrado = new ArrayList<>(); // se crea una lista para los nodos por los que se ha pasado
         ArrayList<Paso> abierto = new ArrayList<>(); // se crea una lista para los nodos vecinos
-        double pesoAcumulado=0;                      //se establece el peso acumulado inicial como 0
+        double pesoAcumulado = 0;                      //se establece el peso acumulado inicial como 0
         Nodo posicionActual = nodos[0];              // se crea el nodo A como primer elemento y posicion actual
         cerrado.add(new Paso(posicionActual, null, 0)); // se agreaga el mmismo nodo a la lista cerrado
 
@@ -122,78 +124,79 @@ public class Controller {
                 //determinando si su cruce en la matriz de adyacencia es diferente de cero
                 if (matrizAdyacencia[x][i] != 0) {
                     boolean tomado = false;   //se crea la variable tomado para controlar el no repetir nodos
-                    int auxN=0;
+                    int auxN = 0;
                     // vericamos  si ya se ha pasado antes por el nodo
                     for (int j = 0; j < cerrado.stream().count(); j++) {
                         if (cerrado.get(j).getDestino().getNombre().equals(matrizCoordenadas[1][i])) {
                             tomado = true;
-                            auxN=i;
+                            auxN = i;
                         }
                     }
                     //si no se ha pasado antes
-                    if(!tomado){
+                    if (!tomado) {
                         //se crea un nuevo nodo con los datos del destino
                         Nodo d = new Nodo(matrizCoordenadas[1][i], Integer.parseInt(matrizCoordenadas[2][i]), Integer.parseInt(matrizCoordenadas[3][i]));
                         //se recorre la lista de los posibles vecinos con un ciclo
-                        for (int j = 0; j < abierto.stream().count() ; j++) {
+                        for (int j = 0; j < abierto.stream().count(); j++) {
                             //si el nodo estino ya estaba entre los posibles vecinos
-                            if(abierto.get(j).getDestino().getNombre().equals(matrizCoordenadas[1][i])){
-                                tomado=true;
+                            if (abierto.get(j).getDestino().getNombre().equals(matrizCoordenadas[1][i])) {
+                                tomado = true;
                                 //se comprueba si hay un mejor camino para llegar a nuestra ubicacion actual y en dicho caso se cambia
-                                if(abierto.get(j).getPeso()-heuristica(i)+matrizAdyacencia[x][i]<pesoAcumulado){
-                                    Paso eliminar = cerrado.get((int)cerrado.stream().count()-1);
+                                if (abierto.get(j).getPeso() - heuristica(i) + matrizAdyacencia[x][i] < pesoAcumulado) {
+                                    Paso eliminar = cerrado.get((int) cerrado.stream().count() - 1);
                                     //este ciclo elimina los pasos dados hasta la salida que encontramos y era mejor
-                                    while (!eliminar.getPadre().getNombre().equals(abierto.get(j).getPadre().getNombre())){
-                                        eliminar = cerrado.remove((int)cerrado.stream().count()-1);
+                                    while (!eliminar.getPadre().getNombre().equals(abierto.get(j).getPadre().getNombre())) {
+                                        eliminar = cerrado.remove((int) cerrado.stream().count() - 1);
                                     }
-                                    eliminar=abierto.remove(j);
-                                    eliminar.setPeso(eliminar.getPeso()-eliminar.getDestino().heuristica());
+                                    eliminar = abierto.remove(j);
+                                    eliminar.setPeso(eliminar.getPeso() - eliminar.getDestino().heuristica());
                                     cerrado.add(eliminar);
                                     pesoAcumulado = eliminar.getPeso();
-                                    Paso agregar = new Paso(nodos[x], eliminar.getDestino(), pesoAcumulado+matrizAdyacencia[x][i]);
+                                    Paso agregar = new Paso(nodos[x], eliminar.getDestino(), pesoAcumulado + matrizAdyacencia[x][i]);
                                     cerrado.add(agregar);
-                                    pesoAcumulado+=matrizAdyacencia[x][i];
+                                    pesoAcumulado += matrizAdyacencia[x][i];
                                     break;
                                 }
                                 // se verifica si el nuevo camino es más corto que el anterior y se actualiza
-                                else if(abierto.get(j).getPeso()>(matrizAdyacencia[x][i]+pesoAcumulado+d.heuristica())){
+                                else if (abierto.get(j).getPeso() > (matrizAdyacencia[x][i] + pesoAcumulado + d.heuristica())) {
                                     abierto.remove(abierto.get(j));
-                                    abierto.add(new Paso(d, posicionActual, matrizAdyacencia[x][i]+pesoAcumulado+d.heuristica()));
+                                    abierto.add(new Paso(d, posicionActual, matrizAdyacencia[x][i] + pesoAcumulado + d.heuristica()));
                                     break;
                                 }
                             }
                         }
                         //si el destino no había sido revisado antes, se agrega a la lista de abiertos
-                        if(!tomado){
-                            abierto.add(new Paso(d, posicionActual, matrizAdyacencia[x][i]+pesoAcumulado+d.heuristica()));
+                        if (!tomado) {
+                            abierto.add(new Paso(d, posicionActual, matrizAdyacencia[x][i] + pesoAcumulado + d.heuristica()));
                         }
                     }
                 }
             }
 
             //encontramos el mejor vecino
-            int mejorVecino=0;
+            int mejorVecino = 0;
             for (int i = 0; i < abierto.stream().count(); i++) {
-                if(abierto.get(i).getPeso() < abierto.get(mejorVecino).getPeso()){
-                    mejorVecino=i;
+                if (abierto.get(i).getPeso() < abierto.get(mejorVecino).getPeso()) {
+                    mejorVecino = i;
                 }
             }
 
             //cambio de lista al vecino encontrado, se elimina de los vecinos y se agrega a los pasos dados
             Paso aux = abierto.remove(mejorVecino);
-            aux.setPeso(aux.getPeso()-aux.getDestino().heuristica());
+            aux.setPeso(aux.getPeso() - aux.getDestino().heuristica());
             cerrado.add(aux);
-            pesoAcumulado=aux.getPeso();
-            posicionActual=aux.getDestino();
+            pesoAcumulado = aux.getPeso();
+            posicionActual = aux.getDestino();
         }
 
         //Se revisa la lista cerrado que contiene los pasos definitivos
+        //Y se guardan los nombres de los nodos visitados en un string
         String resultado = "";
-        for (Paso p: cerrado) {
-            resultado+=p.getDestino().getNombre()+"   ";
+        for (Paso p : cerrado) {
+            resultado += p.getDestino().getNombre() + "   ";
         }
-        //se muestra el resultado en pantalla
-        label_vista.setText("El mejor camino es\n"+resultado);
+        //se muestra el string resultado en pantalla
+        label_vista.setText("El mejor camino es\n" + resultado);
     }
 
 
